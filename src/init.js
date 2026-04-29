@@ -37,11 +37,17 @@ fi
 [ -n "$CI" ] && exit 0
 [ -n "$GITHUB_ACTIONS" ] && exit 0
 
+# Allow amend, squash, fixup — user already committed once
+[ "$2" = "commit" ] && exit 0
+[ "$2" = "squash" ] && exit 0
+[ "$2" = "fixup"  ] && exit 0
+
 # Save the commit message for auto-replay after git-who use
 GIT_DIR="$(git rev-parse --git-dir)"
 cp "$1" "$GIT_DIR/git-who-pending-message" 2>/dev/null
 
 "${nodePath}" "${binPath}" _hook
+# Always block — node printed the instructions above
 exit 1
 `;
 }
