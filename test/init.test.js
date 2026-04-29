@@ -14,6 +14,7 @@ test('generateHookScript returns a sh script invoking _hook', () => {
   assert.ok(script.includes('_hook'), 'must invoke _hook command');
   assert.ok(script.includes('git config --local user.email'), 'must check local email');
   assert.ok(script.includes('REPO_HOOK'), 'must chain to repo hook');
+  assert.ok(script.includes('$CI'), 'must check $CI env var for CI detection');
 });
 
 test('writeHook creates an executable pre-commit file', (t) => {

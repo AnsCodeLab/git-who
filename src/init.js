@@ -27,8 +27,10 @@ if [ -n "$LOCAL_EMAIL" ] && [ -n "$LOCAL_NAME" ]; then
   exit 0
 fi
 
-# Skip in non-interactive environments (CI)
-[ -t 0 ] || exit 0
+# Skip in CI environments
+[ -n "$CI" ] && exit 0
+[ -n "$GITHUB_ACTIONS" ] && exit 0
+[ -t 1 ] || exit 0
 
 "${nodePath}" "${binPath}" _hook
 STATUS=$?
@@ -53,7 +55,7 @@ function install(gitWhoDir = DEFAULT_GIT_WHO_DIR) {
   const hookPath = writeHook(gitWhoDir);
   const hooksDir = path.join(gitWhoDir, 'hooks');
   setGlobalConfig('core.hooksPath', toUnixPath(hooksDir));
-  return { hookPath, hooksDir };
+  return { hookPath: toUnixPath(hookPath), hooksDir: toUnixPath(hooksDir) };
 }
 
 module.exports = { install, writeHook, generateHookScript, toUnixPath, DEFAULT_GIT_WHO_DIR };
