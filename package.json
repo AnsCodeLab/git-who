@@ -12,6 +12,9 @@
   "keywords": ["git", "identity", "profile", "commit", "author"],
   "author": "An Nguyen <annguyen209@gmail.com>",
   "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/AnzDev4Life/git-who.git" },
+  "homepage": "https://github.com/AnzDev4Life/git-who#readme",
+  "bugs": { "url": "https://github.com/AnzDev4Life/git-who/issues" },
   "engines": {
     "node": ">=18.0.0"
   },
