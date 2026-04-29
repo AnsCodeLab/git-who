@@ -34,18 +34,36 @@ async function run(argv) {
     }
 
     case 'list': {
+      const activeAlias = getLocalConfig('gitwho.profile');
+      const localName   = getLocalConfig('user.name');
+      const localEmail  = getLocalConfig('user.email');
+
+      // Always show this repo's stored profile first if one is set
+      if (activeAlias) {
+        const repoLine = localName
+          ? `[${activeAlias}]  ${localName} <${localEmail}>`
+          : `[${activeAlias}]`;
+        console.log(chalk.bold('This repo:') + '  ' + chalk.green(repoLine));
+        console.log('');
+      }
+
       const list = getProfiles();
       if (list.length === 0) {
-        console.log('No profiles saved. Run: git-who add');
-        break;
+        console.log('No saved profiles. Run: git-who add');
+      } else {
+        console.log(chalk.bold('Saved profiles:'));
+        list.forEach(p => {
+          const active = p.alias === activeAlias;
+          const marker = active ? chalk.green('*') : ' ';
+          const label  = `${p.alias.padEnd(15)} ${p.name} <${p.email}>`;
+          console.log(`  ${marker} ${active ? chalk.green(label) : label}`);
+        });
       }
-      const activeAlias = getLocalConfig('gitwho.profile');
-      list.forEach(p => {
-        const active = p.alias === activeAlias;
-        const marker = active ? chalk.green('*') : ' ';
-        const label  = `${p.alias.padEnd(15)} ${p.name} <${p.email}>`;
-        console.log(`  ${marker} ${active ? chalk.green(label) : label}`);
-      });
+
+      if (!activeAlias) {
+        console.log('');
+        console.log(chalk.gray('No profile set for this repo. Run: git-who use <alias>'));
+      }
       break;
     }
 
