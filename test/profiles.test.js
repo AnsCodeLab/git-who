@@ -57,3 +57,12 @@ test('getProfiles returns multiple profiles in order', () => {
   assert.equal(list[0].alias, 'a');
   assert.equal(list[1].alias, 'b');
 });
+
+test('saveProfiles persists correct JSON structure', () => {
+  const { dir, file } = tmpFile();
+  profiles.saveProfiles([{ alias: 'x', name: 'X', email: 'x@x.com' }], file);
+  const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
+  assert.ok(Array.isArray(raw.profiles), 'top-level .profiles must be an array');
+  assert.equal(raw.profiles[0].alias, 'x');
+  fs.rmSync(dir, { recursive: true });
+});

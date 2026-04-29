@@ -7,7 +7,11 @@ const DEFAULT_PROFILES_FILE = path.join(os.homedir(), '.git-who', 'profiles.json
 
 function getProfiles(profilesFile = DEFAULT_PROFILES_FILE) {
   if (!fs.existsSync(profilesFile)) return [];
-  return JSON.parse(fs.readFileSync(profilesFile, 'utf8')).profiles || [];
+  try {
+    return JSON.parse(fs.readFileSync(profilesFile, 'utf8')).profiles || [];
+  } catch {
+    throw new Error(`profiles file is corrupt: ${profilesFile}`);
+  }
 }
 
 function saveProfiles(profiles, profilesFile = DEFAULT_PROFILES_FILE) {
