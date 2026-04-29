@@ -51,6 +51,11 @@ async function runHook(profilesFile = DEFAULT_PROFILES_FILE) {
     }
   }
 
+  if (!name || !email) {
+    console.error(chalk.red('✖  Name and email are required. Commit aborted.'));
+    process.exit(1);
+  }
+
   setLocalConfig('user.name',  name);
   setLocalConfig('user.email', email);
   console.log('');
