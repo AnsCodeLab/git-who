@@ -2,9 +2,38 @@
 const chalk   = require('chalk');
 const prompts = require('prompts');
 const { getProfiles, addProfile, findProfile, removeProfile, updateProfile } = require('./profiles');
-const { getLocalConfig, setLocalConfig }        = require('./git');
+const { getLocalConfig, setLocalConfig, unsetLocalConfig, unsetLocalConfigSection } = require('./git');
 const { install }                               = require('./init');
 const { runHook }                               = require('./hook');
+const { getPendingCommitMessage, replayCommit } = require('./replay');
+
+function checkInit() {
+  const { spawnSync } = require('node:child_process');
+  const result = spawnSync('git', ['config', '--global', 'core.hooksPath'], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'ignore']
+  });
+  if (result.status !== 0 || !result.stdout.trim()) {
+    console.log(chalk.yellow('⚠  Hook not installed. Run: git-who init'));
+  }
+}
+
+async function afterUse(alias, name, email) {
+  setLocalConfig('user.name',      name);
+  setLocalConfig('user.email',     email);
+  setLocalConfig('gitwho.profile', alias);
+  console.log(chalk.green(`✓ Identity set: [${alias}] ${name} <${email}>`));
+
+  const pending = getPendingCommitMessage();
+  if (pending) {
+    console.log('');
+    console.log(chalk.gray(`  Replaying saved commit: "${pending}"`));
+    const ok = replayCommit(pending);
+    if (!ok) {
+      console.error(chalk.red('✖  Commit replay failed. Run git commit manually.'));
+    }
+  }
+}
 
 async function run(argv) {
   const [cmd, ...args] = argv;
@@ -19,6 +48,7 @@ async function run(argv) {
     }
 
     case 'add': {
+      checkInit();
       const res = await prompts([
         { type: 'text', name: 'alias', message: 'Alias:' },
         { type: 'text', name: 'name',  message: 'Name:'  },
@@ -38,7 +68,6 @@ async function run(argv) {
       const localName   = getLocalConfig('user.name');
       const localEmail  = getLocalConfig('user.email');
 
-      // Always show this repo's stored profile first if one is set
       if (activeAlias) {
         const repoLine = localName
           ? `[${activeAlias}]  ${localName} <${localEmail}>`
@@ -62,42 +91,81 @@ async function run(argv) {
 
       if (!activeAlias) {
         console.log('');
-        console.log(chalk.gray('No profile set for this repo. Run: git-who use <alias>'));
+        console.log(chalk.gray('No profile set for this repo. Run: git-who use'));
+      }
+      break;
+    }
+
+    case 'whoami': {
+      const alias = getLocalConfig('gitwho.profile');
+      const name  = getLocalConfig('user.name');
+      const email = getLocalConfig('user.email');
+      if (alias) {
+        console.log(chalk.green(`[${alias}]`) + `  ${name} <${email}>`);
+      } else {
+        console.log(chalk.gray('No profile set for this repo. Run: git-who use'));
       }
       break;
     }
 
     case 'use': {
+      checkInit();
       const alias = args[0];
+
       if (!alias) {
-        console.error('Usage: git-who use <alias>');
-        process.exit(1);
+        // Interactive picker
+        const list = getProfiles();
+        if (list.length === 0) {
+          console.log('No profiles saved. Run: git-who add');
+          process.exit(1);
+        }
+        const choices = list.map(p => ({
+          title: `${p.alias.padEnd(15)} ${p.name} <${p.email}>`,
+          value: p
+        }));
+        choices.push({ title: chalk.gray('+ Add new profile'), value: '__add__' });
+
+        const { choice } = await prompts({
+          type:    'select',
+          name:    'choice',
+          message: 'Which profile for this repo?',
+          choices
+        }, { onCancel: () => process.exit(1) });
+
+        if (choice === undefined) process.exit(1);
+
+        if (choice === '__add__') {
+          const res = await prompts([
+            { type: 'text', name: 'alias', message: 'Alias:' },
+            { type: 'text', name: 'name',  message: 'Name:'  },
+            { type: 'text', name: 'email', message: 'Email:' }
+          ], { onCancel: () => process.exit(1) });
+          if (!res.alias || !res.name || !res.email) {
+            console.error(chalk.red('✖  All fields are required.'));
+            process.exit(1);
+          }
+          addProfile(res.alias, res.name, res.email);
+          await afterUse(res.alias, res.name, res.email);
+        } else {
+          await afterUse(choice.alias, choice.name, choice.email);
+        }
+      } else {
+        // Direct alias
+        const profile = findProfile(alias);
+        if (!profile) {
+          console.error(chalk.red(`✖  Profile '${alias}' not found. Run: git-who list`));
+          process.exit(1);
+        }
+        await afterUse(alias, profile.name, profile.email);
       }
-      const profile = findProfile(alias);
-      if (!profile) {
-        console.error(`Profile '${alias}' not found. Run: git-who list`);
-        process.exit(1);
-      }
-      setLocalConfig('user.name',    profile.name);
-      setLocalConfig('user.email',   profile.email);
-      setLocalConfig('gitwho.profile', alias);
-      console.log(chalk.green(`✓ Identity set for this repo: [${alias}] ${profile.name} <${profile.email}>`));
       break;
     }
 
-    case 'remove': {
-      const alias = args[0];
-      if (!alias) {
-        console.error('Usage: git-who remove <alias>');
-        process.exit(1);
-      }
-      try {
-        removeProfile(alias);
-        console.log(chalk.green(`✓ Profile '${alias}' removed.`));
-      } catch (err) {
-        console.error(chalk.red(`✖  ${err.message}`));
-        process.exit(1);
-      }
+    case 'unset': {
+      unsetLocalConfigSection('gitwho');
+      unsetLocalConfig('user.name');
+      unsetLocalConfig('user.email');
+      console.log(chalk.green('✓ Profile cleared for this repo.'));
       break;
     }
 
@@ -125,6 +193,22 @@ async function run(argv) {
       break;
     }
 
+    case 'remove': {
+      const alias = args[0];
+      if (!alias) {
+        console.error('Usage: git-who remove <alias>');
+        process.exit(1);
+      }
+      try {
+        removeProfile(alias);
+        console.log(chalk.green(`✓ Profile '${alias}' removed.`));
+      } catch (err) {
+        console.error(chalk.red(`✖  ${err.message}`));
+        process.exit(1);
+      }
+      break;
+    }
+
     case '_hook': {
       runHook();
       break;
@@ -132,15 +216,22 @@ async function run(argv) {
 
     default: {
       console.log([
-        'Usage: git-who <command>',
+        'git-who — commit as the right person, every time.',
         '',
-        'Commands:',
-        '  init              Install global pre-commit hook',
-        '  add               Add a new identity profile',
-        '  list              List saved profiles',
-        '  use <alias>       Set identity for current repo',
-        '  update <alias>    Update name/email of a profile',
-        '  remove <alias>    Remove a profile',
+        chalk.bold('Getting started:'),
+        '  1. git-who init        install the global hook (run once)',
+        '  2. git-who add         save a profile (name + email)',
+        '  3. git commit ...      hook guides you from there',
+        '',
+        chalk.bold('Commands:'),
+        '  init              Install global hook',
+        '  add               Save a new identity profile',
+        '  list              List profiles and this repo\'s identity',
+        '  use [alias]       Set profile for this repo (interactive if no alias)',
+        '  whoami            Show this repo\'s current identity',
+        '  update <alias>    Update a profile\'s name or email',
+        '  remove <alias>    Remove a saved profile',
+        '  unset             Clear this repo\'s identity',
       ].join('\n'));
       if (cmd) process.exit(1);
     }
