@@ -22,13 +22,14 @@ function generateHookScript() {
   const nodePath = toUnixPath(process.execPath);
   const binPath = toUnixPath(path.resolve(__dirname, '..', 'bin.js'));
   return `#!/usr/bin/env sh
-# git-who pre-commit hook — regenerate with: git-who init
+# git-who prepare-commit-msg hook — regenerate with: git-who init
+# $1 = path to COMMIT_EDITMSG, $2 = commit source (message/template/merge/squash/commit)
 
 PROFILE=$(git config --local gitwho.profile 2>/dev/null)
 
 if [ -n "$PROFILE" ]; then
-  REPO_HOOK="$(git rev-parse --git-dir)/hooks/pre-commit"
-  [ -x "$REPO_HOOK" ] && exec "$REPO_HOOK"
+  REPO_HOOK="$(git rev-parse --git-dir)/hooks/prepare-commit-msg"
+  [ -x "$REPO_HOOK" ] && exec "$REPO_HOOK" "$@"
   exit 0
 fi
 
@@ -36,28 +37,19 @@ fi
 [ -n "$CI" ] && exit 0
 [ -n "$GITHUB_ACTIONS" ] && exit 0
 
-# Reconnect stdin to terminal so Node prompts can receive keyboard input.
-# On Unix, git pre-commit hooks have stdin from /dev/null — must reopen /dev/tty.
-# On Windows/MINGW (Git for Windows), stdin is already connected to the terminal.
-case "$(uname -s 2>/dev/null)" in
-  MINGW*|MSYS*|CYGWIN*) : ;;
-  *) exec < /dev/tty 2>/dev/null || exit 0 ;;
-esac
+# Save the commit message for auto-replay after git-who use
+GIT_DIR="$(git rev-parse --git-dir)"
+cp "$1" "$GIT_DIR/git-who-pending-message" 2>/dev/null
 
 "${nodePath}" "${binPath}" _hook
-STATUS=$?
-[ "$STATUS" -ne 0 ] && exit "$STATUS"
-
-REPO_HOOK="$(git rev-parse --git-dir)/hooks/pre-commit"
-[ -x "$REPO_HOOK" ] && exec "$REPO_HOOK"
-exit 0
+exit 1
 `;
 }
 
 function writeHook(gitWhoDir = DEFAULT_GIT_WHO_DIR) {
   const hooksDir = path.join(gitWhoDir, 'hooks');
   fs.mkdirSync(hooksDir, { recursive: true });
-  const hookPath = path.join(hooksDir, 'pre-commit');
+  const hookPath = path.join(hooksDir, 'prepare-commit-msg');
   fs.writeFileSync(hookPath, generateHookScript());
   fs.chmodSync(hookPath, 0o755);
   return hookPath;

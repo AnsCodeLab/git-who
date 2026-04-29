@@ -15,18 +15,17 @@ test('generateHookScript returns a sh script invoking _hook', () => {
   assert.ok(script.includes('gitwho.profile'), 'must check gitwho.profile');
   assert.ok(script.includes('REPO_HOOK'), 'must chain to repo hook');
   assert.ok(script.includes('$CI'), 'must check $CI env var for CI detection');
-  assert.ok(script.includes('/dev/tty'), 'must reconnect stdin via /dev/tty on Unix');
+  assert.ok(script.includes('git-who-pending-message'), 'must save pending message');
+  assert.ok(script.includes('prepare-commit-msg'), 'hook comment must name prepare-commit-msg');
 });
 
-test('writeHook creates an executable pre-commit file', (t) => {
+test('writeHook creates an executable prepare-commit-msg file', (t) => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'git-who-init-'));
   after(() => fs.rmSync(tmpDir, { recursive: true, force: true }));
   const hookPath = init.writeHook(tmpDir);
   assert.ok(fs.existsSync(hookPath), 'hook file must exist');
-  assert.equal(path.basename(hookPath), 'pre-commit');
+  assert.equal(path.basename(hookPath), 'prepare-commit-msg');
   const mode = fs.statSync(hookPath).mode;
-  // On Unix, verify execute bit is set. On Windows, chmod doesn't set Unix perms,
-  // but the shell script will still be executable via Git Bash/WSL/etc
   if (process.platform !== 'win32') {
     assert.ok(mode & 0o111, 'hook must be executable');
   }
