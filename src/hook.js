@@ -4,6 +4,8 @@ const chalk = require('chalk');
 const { getProfiles, addProfile, DEFAULT_PROFILES_FILE } = require('./profiles');
 const { setLocalConfig } = require('./git');
 
+// Uses numbered text input instead of arrow-key select — works in git hook
+// context on Windows where the terminal is not in raw mode.
 async function runHook(profilesFile = DEFAULT_PROFILES_FILE) {
   const list = getProfiles(profilesFile);
 
@@ -23,22 +25,21 @@ async function runHook(profilesFile = DEFAULT_PROFILES_FILE) {
     email = res.email;
     if (res.saveAs) addProfile(res.saveAs, name, email, profilesFile);
   } else {
-    const choices = list.map(p => ({
-      title: `[${p.alias}]  ${p.name} <${p.email}>`,
-      value: p
-    }));
-    choices.push({ title: 'Enter new identity', value: '__new__' });
+    list.forEach((p, i) => {
+      console.log(`  ${chalk.cyan(i + 1 + ')')} [${p.alias}]  ${p.name} <${p.email}>`);
+    });
+    console.log(`  ${chalk.cyan('n)')} Enter new identity`);
+    console.log('');
 
-    const { choice } = await prompts({
-      type:    'select',
-      name:    'choice',
-      message: 'Select a git identity for this repo:',
-      choices
+    const { selection } = await prompts({
+      type:    'text',
+      name:    'selection',
+      message: `Select [1-${list.length}/n]:`
     }, { onCancel: () => process.exit(1) });
 
-    if (choice === undefined) process.exit(1);
+    if (selection === undefined) process.exit(1);
 
-    if (choice === '__new__') {
+    if (selection === 'n' || selection === 'N') {
       const res = await prompts([
         { type: 'text', name: 'name',   message: 'Name:'  },
         { type: 'text', name: 'email',  message: 'Email:' },
@@ -48,8 +49,13 @@ async function runHook(profilesFile = DEFAULT_PROFILES_FILE) {
       email = res.email;
       if (res.saveAs) addProfile(res.saveAs, name, email, profilesFile);
     } else {
-      name  = choice.name;
-      email = choice.email;
+      const idx = parseInt(selection, 10) - 1;
+      if (isNaN(idx) || idx < 0 || idx >= list.length) {
+        console.error(chalk.red(`✖  Invalid selection. Enter a number between 1 and ${list.length}, or n.`));
+        process.exit(1);
+      }
+      name  = list[idx].name;
+      email = list[idx].email;
     }
   }
 
