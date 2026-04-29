@@ -30,4 +30,21 @@ function findProfile(alias, profilesFile = DEFAULT_PROFILES_FILE) {
   return getProfiles(profilesFile).find(p => p.alias === alias) || null;
 }
 
-module.exports = { getProfiles, saveProfiles, addProfile, findProfile, DEFAULT_PROFILES_FILE };
+function removeProfile(alias, profilesFile = DEFAULT_PROFILES_FILE) {
+  const list = getProfiles(profilesFile);
+  const idx = list.findIndex(p => p.alias === alias);
+  if (idx === -1) throw new Error(`Profile '${alias}' not found`);
+  list.splice(idx, 1);
+  saveProfiles(list, profilesFile);
+}
+
+function updateProfile(alias, name, email, profilesFile = DEFAULT_PROFILES_FILE) {
+  const list = getProfiles(profilesFile);
+  const profile = list.find(p => p.alias === alias);
+  if (!profile) throw new Error(`Profile '${alias}' not found`);
+  profile.name  = name;
+  profile.email = email;
+  saveProfiles(list, profilesFile);
+}
+
+module.exports = { getProfiles, saveProfiles, addProfile, findProfile, removeProfile, updateProfile, DEFAULT_PROFILES_FILE };

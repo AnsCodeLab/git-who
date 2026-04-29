@@ -71,3 +71,36 @@ test('saveProfiles persists correct JSON structure', (t) => {
   assert.ok(Array.isArray(raw.profiles), 'top-level .profiles must be an array');
   assert.equal(raw.profiles[0].alias, 'x');
 });
+
+test('removeProfile removes profile by alias', (t) => {
+  const { dir, file } = tmpFile();
+  after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  profiles.addProfile('a', 'A', 'a@x.com', file);
+  profiles.addProfile('b', 'B', 'b@x.com', file);
+  profiles.removeProfile('a', file);
+  const list = profiles.getProfiles(file);
+  assert.equal(list.length, 1);
+  assert.equal(list[0].alias, 'b');
+});
+
+test('removeProfile throws for unknown alias', (t) => {
+  const { dir, file } = tmpFile();
+  after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  assert.throws(() => profiles.removeProfile('ghost', file), /not found/);
+});
+
+test('updateProfile updates name and email', (t) => {
+  const { dir, file } = tmpFile();
+  after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  profiles.addProfile('work', 'Old Name', 'old@x.com', file);
+  profiles.updateProfile('work', 'New Name', 'new@x.com', file);
+  const p = profiles.findProfile('work', file);
+  assert.equal(p.name, 'New Name');
+  assert.equal(p.email, 'new@x.com');
+});
+
+test('updateProfile throws for unknown alias', (t) => {
+  const { dir, file } = tmpFile();
+  after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  assert.throws(() => profiles.updateProfile('ghost', 'N', 'n@x.com', file), /not found/);
+});

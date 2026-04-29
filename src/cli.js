@@ -1,7 +1,7 @@
 'use strict';
 const chalk   = require('chalk');
 const prompts = require('prompts');
-const { getProfiles, addProfile, findProfile } = require('./profiles');
+const { getProfiles, addProfile, findProfile, removeProfile, updateProfile } = require('./profiles');
 const { getLocalConfig, setLocalConfig }        = require('./git');
 const { install }                               = require('./init');
 const { runHook }                               = require('./hook');
@@ -67,6 +67,46 @@ async function run(argv) {
       break;
     }
 
+    case 'remove': {
+      const alias = args[0];
+      if (!alias) {
+        console.error('Usage: git-who remove <alias>');
+        process.exit(1);
+      }
+      try {
+        removeProfile(alias);
+        console.log(chalk.green(`✓ Profile '${alias}' removed.`));
+      } catch (err) {
+        console.error(chalk.red(`✖  ${err.message}`));
+        process.exit(1);
+      }
+      break;
+    }
+
+    case 'update': {
+      const alias = args[0];
+      if (!alias) {
+        console.error('Usage: git-who update <alias>');
+        process.exit(1);
+      }
+      const existing = findProfile(alias);
+      if (!existing) {
+        console.error(chalk.red(`✖  Profile '${alias}' not found. Run: git-who list`));
+        process.exit(1);
+      }
+      const res = await prompts([
+        { type: 'text', name: 'name',  message: 'Name:',  initial: existing.name  },
+        { type: 'text', name: 'email', message: 'Email:', initial: existing.email }
+      ], { onCancel: () => process.exit(1) });
+      if (!res.name || !res.email) {
+        console.error(chalk.red('✖  Name and email are required.'));
+        process.exit(1);
+      }
+      updateProfile(alias, res.name, res.email);
+      console.log(chalk.green(`✓ Profile '${alias}' updated.`));
+      break;
+    }
+
     case '_hook': {
       await runHook();
       break;
@@ -81,6 +121,8 @@ async function run(argv) {
         '  add               Add a new identity profile',
         '  list              List saved profiles',
         '  use <alias>       Set identity for current repo',
+        '  update <alias>    Update name/email of a profile',
+        '  remove <alias>    Remove a profile',
       ].join('\n'));
       if (cmd) process.exit(1);
     }
