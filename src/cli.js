@@ -108,7 +108,7 @@ async function run(argv) {
     }
 
     case '_hook': {
-      await runHook();
+      runHook();
       break;
     }
 

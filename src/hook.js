@@ -1,35 +1,39 @@
 'use strict';
-const readline = require('node:readline');
 const fs = require('node:fs');
 const chalk = require('chalk');
 const { getProfiles, addProfile, DEFAULT_PROFILES_FILE } = require('./profiles');
 const { setLocalConfig } = require('./git');
 
-// Opens the terminal directly, bypassing git's stdin redirection.
+// Reads one line from the terminal, bypassing git's stdin redirection.
+// Uses synchronous file I/O so the process blocks until the user presses Enter.
 // On Windows: CONIN$ is the Windows console input device.
 // On Unix: /dev/tty is the controlling terminal.
-function openTerminal() {
+function ask(question) {
+  process.stdout.write(question);
   const device = process.platform === 'win32' ? 'CONIN$' : '/dev/tty';
+  let fd;
   try {
-    const fd = fs.openSync(device, 'r');
-    return fs.createReadStream(null, { fd, autoClose: true });
+    fd = fs.openSync(device, 'r');
   } catch {
-    return process.stdin;
+    process.exit(1);
   }
+  // Read up to 1024 bytes (enough for any name/email)
+  const buf = Buffer.alloc(1024);
+  let total = 0;
+  // Read byte by byte until newline or buffer full
+  const one = Buffer.alloc(1);
+  while (total < buf.length) {
+    const n = fs.readSync(fd, one, 0, 1);
+    if (n === 0) break;
+    if (one[0] === 0x0a) break; // LF
+    if (one[0] !== 0x0d) { buf[total++] = one[0]; } // skip CR
+  }
+  fs.closeSync(fd);
+  return buf.slice(0, total).toString('utf8').trim();
 }
 
-function ask(question, terminalStream) {
-  return new Promise(resolve => {
-    process.stdout.write(question);
-    const rl = readline.createInterface({ input: terminalStream, terminal: false });
-    rl.once('line', line => { rl.close(); resolve(line.trim()); });
-    rl.once('close', () => resolve(''));
-  });
-}
-
-async function runHook(profilesFile = DEFAULT_PROFILES_FILE) {
+function runHook(profilesFile = DEFAULT_PROFILES_FILE) {
   const list = getProfiles(profilesFile);
-  const term = openTerminal();
 
   console.log('');
   console.log(chalk.yellow('⚠  No git identity set for this repo.'));
@@ -38,9 +42,9 @@ async function runHook(profilesFile = DEFAULT_PROFILES_FILE) {
   let name, email;
 
   if (list.length === 0) {
-    name   = await ask('Name:  ', term);
-    email  = await ask('Email: ', term);
-    const saveAs = await ask('Save as profile alias (leave blank to skip): ', term);
+    name   = ask('Name:  ');
+    email  = ask('Email: ');
+    const saveAs = ask('Save as profile alias (leave blank to skip): ');
     if (saveAs) addProfile(saveAs, name, email, profilesFile);
   } else {
     list.forEach((p, i) => {
@@ -49,14 +53,14 @@ async function runHook(profilesFile = DEFAULT_PROFILES_FILE) {
     console.log(`  ${chalk.cyan('n)')} Enter new identity`);
     console.log('');
 
-    const selection = await ask(`Select [1-${list.length}/n]: `, term);
+    const selection = ask(`Select [1-${list.length}/n]: `);
 
     if (!selection) process.exit(1);
 
     if (selection === 'n' || selection === 'N') {
-      name   = await ask('Name:  ', term);
-      email  = await ask('Email: ', term);
-      const saveAs = await ask('Save as profile alias (leave blank to skip): ', term);
+      name   = ask('Name:  ');
+      email  = ask('Email: ');
+      const saveAs = ask('Save as profile alias (leave blank to skip): ');
       if (saveAs) addProfile(saveAs, name, email, profilesFile);
     } else {
       const idx = parseInt(selection, 10) - 1;
