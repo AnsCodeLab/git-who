@@ -5,7 +5,7 @@ Commit as the right person, every time. Never accidentally commit as the wrong a
 ## Install
 
 ```bash
-npm install -g git-who
+npm install -g @annguyen209/git-who
 ```
 
 Then run once to install the global hook:
