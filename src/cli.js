@@ -24,6 +24,10 @@ async function run(argv) {
         { type: 'text', name: 'name',  message: 'Name:'  },
         { type: 'text', name: 'email', message: 'Email:' }
       ], { onCancel: () => process.exit(1) });
+      if (!res.alias || !res.name || !res.email) {
+        console.error(chalk.red('✖  All fields are required.'));
+        process.exit(1);
+      }
       addProfile(res.alias, res.name, res.email);
       console.log(chalk.green(`✓ Profile '${res.alias}' saved.`));
       break;
