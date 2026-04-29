@@ -36,6 +36,8 @@ async function runHook(profilesFile = DEFAULT_PROFILES_FILE) {
       choices
     }, { onCancel: () => process.exit(1) });
 
+    if (choice === undefined) process.exit(1);
+
     if (choice === '__new__') {
       const res = await prompts([
         { type: 'text', name: 'name',   message: 'Name:'  },
