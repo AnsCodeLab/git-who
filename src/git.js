@@ -51,7 +51,10 @@ function unsetLocalConfigSection(section, cwd = process.cwd()) {
     stdio: ['ignore', 'pipe', 'pipe']
   });
   if (result.error) throw new Error(`git not found: ${result.error.message}`);
-  // exit 5 means section did not exist — treat as success
+  // exit 128 with "no such section" is benign — treat as success
+  if (result.status !== 0 && !result.stderr.includes('no such section')) {
+    throw new Error(`Failed to remove git config section ${section}: ${result.stderr.trim()}`);
+  }
 }
 
 module.exports = { getLocalConfig, setLocalConfig, setGlobalConfig, isLocalConfigSet, unsetLocalConfig, unsetLocalConfigSection };
