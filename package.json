@@ -1,6 +1,6 @@
 {
   "name": "@annguyen209/git-who",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Prompts for the right git identity before your first commit in a repo",
   "bin": {
     "git-who": "bin.js"
