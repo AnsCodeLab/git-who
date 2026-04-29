@@ -30,7 +30,11 @@ fi
 # Skip in CI environments
 [ -n "$CI" ] && exit 0
 [ -n "$GITHUB_ACTIONS" ] && exit 0
-[ -t 1 ] || exit 0
+
+# Reconnect stdin to terminal so Node prompts can receive keyboard input.
+# Git pre-commit hooks have stdin redirected from /dev/null by default.
+# If /dev/tty is unavailable (headless CI without env vars), skip silently.
+exec < /dev/tty 2>/dev/null || exit 0
 
 "${nodePath}" "${binPath}" _hook
 STATUS=$?
