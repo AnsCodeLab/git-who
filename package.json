@@ -1,20 +1,34 @@
 {
   "name": "git-who",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Prompts for the right git identity before your first commit in a repo",
   "bin": {
-    "git-who": "./bin.js"
+    "git-who": "bin.js"
   },
   "scripts": {
     "test": "node --test"
   },
-  "files": ["bin.js", "src/"],
-  "keywords": ["git", "identity", "profile", "commit", "author"],
+  "files": [
+    "bin.js",
+    "src/"
+  ],
+  "keywords": [
+    "git",
+    "identity",
+    "profile",
+    "commit",
+    "author"
+  ],
   "author": "An Nguyen <annguyen209@gmail.com>",
   "license": "MIT",
-  "repository": { "type": "git", "url": "https://github.com/AnzDev4Life/git-who.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AnzDev4Life/git-who.git"
+  },
   "homepage": "https://github.com/AnzDev4Life/git-who#readme",
-  "bugs": { "url": "https://github.com/AnzDev4Life/git-who/issues" },
+  "bugs": {
+    "url": "https://github.com/AnzDev4Life/git-who/issues"
+  },
   "engines": {
     "node": ">=18.0.0"
   },
