@@ -19,7 +19,12 @@ function getPendingCommitMessage(cwd = process.cwd()) {
   if (!gitDir) return null;
   const pendingFile = path.join(gitDir, 'git-who-pending-message');
   if (!fs.existsSync(pendingFile)) return null;
-  return fs.readFileSync(pendingFile, 'utf8').trim() || null;
+  const text = fs.readFileSync(pendingFile, 'utf8')
+    .split('\n')
+    .filter(l => !l.startsWith('#'))
+    .join('\n')
+    .trim();
+  return text || null;
 }
 
 function clearPendingCommit(cwd = process.cwd()) {

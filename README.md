@@ -1,8 +1,6 @@
 # git-who
 
-Prompts for the right git identity before your first commit in a repo.
-
-Never accidentally commit as the wrong author when juggling multiple clients or organizations.
+Commit as the right person, every time. Never accidentally commit as the wrong author when juggling multiple clients or organizations.
 
 ## Install
 
@@ -16,71 +14,111 @@ Then run once to install the global hook:
 git-who init
 ```
 
-## Usage
+## How it works
+
+`git-who init` installs a global `prepare-commit-msg` hook via `git config --global core.hooksPath`. The hook fires on every commit in every repo.
+
+**First commit in a new repo** — the hook blocks and shows which command to run:
+
+```
+⚠  No profile set for this repo.
+   Your commit has been saved — run:
+
+    git-who use personal   # An Nguyen <you@personal.com>
+    git-who use            # interactive picker
+```
+
+**Run `git-who use`** — picks a profile and automatically replays your saved commit:
+
+```
+$ git-who use
+
+  ❯ personal   An Nguyen <you@personal.com>
+    client-a   An Nguyen <you@clienta.com>
+
+✓ Identity set: [personal] An Nguyen <you@personal.com>
+
+  Replaying saved commit: "fix login bug"
+✓ [master a1b2c3] fix login bug
+```
+
+**All subsequent commits** in the same repo pass through instantly — no interruption.
+
+The hook also chains to any existing `prepare-commit-msg` hook in the repo (husky, commitlint, etc.) so existing tooling keeps working.
+
+## Commands
 
 ```
 git-who <command>
 
+Getting started:
+  1. git-who init        install the global hook (run once)
+  2. git-who add         save a profile (name + email)
+  3. git commit ...      hook guides you from there
+
 Commands:
-  init              Install global pre-commit hook
-  add               Add a new identity profile
-  list              List saved profiles
-  use <alias>       Set identity for current repo
+  init              Install global hook
+  add               Save a new identity profile
+  list              List profiles and this repo's identity
+  use [alias]       Set profile for this repo (interactive if no alias)
+  whoami            Show this repo's current identity
+  update <alias>    Update a profile's name or email
+  remove <alias>    Remove a saved profile
+  unset             Clear this repo's identity
 ```
 
-### How it works
+### `git-who init`
+Installs the global hook. Run once after installing.
 
-After `git-who init`, a global pre-commit hook is installed. The first time you commit in any repo without a local `user.email` set, you'll see:
-
+### `git-who add`
+Interactive — prompts for alias, name, email:
 ```
-⚠  No git identity set for this repo.
-
-❯ [personal]  Your Name <you@personal.com>
-  [client-a]  Your Name <you@clienta.com>
-  Enter new identity
-```
-
-Select a profile and the commit proceeds. Subsequent commits in the same repo are not interrupted.
-
-### Commands
-
-**`git-who init`** — Install the global pre-commit hook. Run once after installing.
-
-**`git-who add`** — Add a named identity profile.
-
-**`git-who list`** — List all profiles. Marks the active profile for the current repo with `*`.
-
-**`git-who use <alias>`** — Set the identity for the current repo immediately (without waiting for a commit).
-
-## Requirements
-
-- Node.js 18+
-- Git Bash on Windows (PowerShell is not supported)
-- Git 2.9+ (for `core.hooksPath`)
-
-## How git-who init works
-
-`git-who init` sets `core.hooksPath` globally:
-
-```bash
-git config --global core.hooksPath ~/.git-who/hooks
+$ git-who add
+Alias:  personal
+Name:   An Nguyen
+Email:  you@personal.com
+✓ Profile 'personal' saved.
 ```
 
-The hook checks for a local git identity before every commit. If one is already set, it exits immediately with no overhead. If not, it prompts you to select or create a profile.
+### `git-who list`
+Shows saved profiles and this repo's active identity:
+```
+This repo:  [personal]  An Nguyen <you@personal.com>
 
-The hook also chains to any repo-level `pre-commit` hook (husky, lint-staged, etc.), so existing hooks continue to work.
+Saved profiles:
+  * personal        An Nguyen <you@personal.com>
+    client-a        An Nguyen <you@clienta.com>
+```
+
+### `git-who use [alias]`
+With an alias: sets identity immediately and replays any saved commit.
+Without an alias: shows an interactive picker.
+
+### `git-who whoami`
+Quick status for the current repo:
+```
+[personal]  An Nguyen <you@personal.com>
+```
+
+### `git-who unset`
+Clears this repo's identity. Next commit will be blocked again until you run `git-who use`.
 
 ## Profiles
 
-Profiles are stored in `~/.git-who/profiles.json`:
-
+Saved in `~/.git-who/profiles.json`:
 ```json
 {
   "profiles": [
-    { "alias": "personal", "name": "Your Name", "email": "you@personal.com" },
-    { "alias": "client-a", "name": "Your Name", "email": "you@clienta.com" }
+    { "alias": "personal", "name": "An Nguyen", "email": "you@personal.com" },
+    { "alias": "client-a", "name": "An Nguyen", "email": "you@clienta.com" }
   ]
 }
 ```
 
 You can edit this file directly.
+
+## Requirements
+
+- Node.js 18+
+- Git 2.9+ (for `core.hooksPath`)
+- Git Bash on Windows (PowerShell is not supported for hook execution)

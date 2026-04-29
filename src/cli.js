@@ -1,6 +1,9 @@
 'use strict';
-const chalk   = require('chalk');
-const prompts = require('prompts');
+const chalk             = require('chalk');
+const prompts           = require('prompts');
+const { spawnSync }     = require('node:child_process');
+const nodePath          = require('node:path');
+const nodeFs            = require('node:fs');
 const { getProfiles, addProfile, findProfile, removeProfile, updateProfile } = require('./profiles');
 const { getLocalConfig, setLocalConfig, unsetLocalConfig, unsetLocalConfigSection } = require('./git');
 const { install }                               = require('./init');
@@ -8,16 +11,13 @@ const { runHook }                               = require('./hook');
 const { getPendingCommitMessage, replayCommit, clearPendingCommit } = require('./replay');
 
 function checkInit() {
-  const { spawnSync } = require('node:child_process');
   const result = spawnSync('git', ['config', '--global', 'core.hooksPath'], {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'ignore']
   });
   const hooksPath = result.status === 0 ? result.stdout.trim() : '';
-  const hookFile = hooksPath
-    ? require('node:path').join(hooksPath, 'prepare-commit-msg')
-    : '';
-  if (!hookFile || !require('node:fs').existsSync(hookFile)) {
+  const hookFile = hooksPath ? nodePath.join(hooksPath, 'prepare-commit-msg') : '';
+  if (!hookFile || !nodeFs.existsSync(hookFile)) {
     console.log(chalk.yellow('⚠  Hook not installed. Run: git-who init'));
   }
 }
@@ -166,11 +166,16 @@ async function run(argv) {
     }
 
     case 'unset': {
-      unsetLocalConfigSection('gitwho');
-      unsetLocalConfig('user.name');
-      unsetLocalConfig('user.email');
-      clearPendingCommit();
-      console.log(chalk.green('✓ Profile cleared for this repo.'));
+      try {
+        unsetLocalConfigSection('gitwho');
+        unsetLocalConfig('user.name');
+        unsetLocalConfig('user.email');
+        clearPendingCommit();
+        console.log(chalk.green('✓ Profile cleared for this repo.'));
+      } catch (err) {
+        console.error(chalk.red(`✖  ${err.message}`));
+        process.exit(1);
+      }
       break;
     }
 
