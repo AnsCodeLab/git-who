@@ -5,7 +5,7 @@ const { getProfiles, addProfile, findProfile, removeProfile, updateProfile } = r
 const { getLocalConfig, setLocalConfig, unsetLocalConfig, unsetLocalConfigSection } = require('./git');
 const { install }                               = require('./init');
 const { runHook }                               = require('./hook');
-const { getPendingCommitMessage, replayCommit } = require('./replay');
+const { getPendingCommitMessage, replayCommit, clearPendingCommit } = require('./replay');
 
 function checkInit() {
   const { spawnSync } = require('node:child_process');
@@ -13,7 +13,11 @@ function checkInit() {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'ignore']
   });
-  if (result.status !== 0 || !result.stdout.trim()) {
+  const hooksPath = result.status === 0 ? result.stdout.trim() : '';
+  const hookFile = hooksPath
+    ? require('node:path').join(hooksPath, 'prepare-commit-msg')
+    : '';
+  if (!hookFile || !require('node:fs').existsSync(hookFile)) {
     console.log(chalk.yellow('⚠  Hook not installed. Run: git-who init'));
   }
 }
@@ -165,6 +169,7 @@ async function run(argv) {
       unsetLocalConfigSection('gitwho');
       unsetLocalConfig('user.name');
       unsetLocalConfig('user.email');
+      clearPendingCommit();
       console.log(chalk.green('✓ Profile cleared for this repo.'));
       break;
     }

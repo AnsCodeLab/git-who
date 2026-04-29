@@ -30,11 +30,13 @@ function clearPendingCommit(cwd = process.cwd()) {
 }
 
 function replayCommit(message, cwd = process.cwd()) {
-  clearPendingCommit(cwd);
   const result = spawnSync('git', ['commit', '-m', message], {
     cwd,
     stdio: 'inherit'
   });
+  if (result.status === 0) {
+    clearPendingCommit(cwd);
+  }
   return result.status === 0;
 }
 
