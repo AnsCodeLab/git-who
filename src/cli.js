@@ -39,10 +39,9 @@ async function run(argv) {
         console.log('No profiles saved. Run: git-who add');
         break;
       }
-      const localEmail = getLocalConfig('user.email');
-      const localName  = getLocalConfig('user.name');
+      const activeAlias = getLocalConfig('gitwho.profile');
       list.forEach(p => {
-        const active = p.email === localEmail && p.name === localName;
+        const active = p.alias === activeAlias;
         const marker = active ? chalk.green('*') : ' ';
         const label  = `${p.alias.padEnd(15)} ${p.name} <${p.email}>`;
         console.log(`  ${marker} ${active ? chalk.green(label) : label}`);
@@ -61,9 +60,10 @@ async function run(argv) {
         console.error(`Profile '${alias}' not found. Run: git-who list`);
         process.exit(1);
       }
-      setLocalConfig('user.name',  profile.name);
-      setLocalConfig('user.email', profile.email);
-      console.log(chalk.green(`✓ Identity set for this repo: ${profile.name} <${profile.email}>`));
+      setLocalConfig('user.name',    profile.name);
+      setLocalConfig('user.email',   profile.email);
+      setLocalConfig('gitwho.profile', alias);
+      console.log(chalk.green(`✓ Identity set for this repo: [${alias}] ${profile.name} <${profile.email}>`));
       break;
     }
 

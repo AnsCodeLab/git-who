@@ -12,7 +12,7 @@ test('generateHookScript returns a sh script invoking _hook', () => {
   const script = init.generateHookScript();
   assert.ok(script.startsWith('#!/usr/bin/env sh'), 'must have sh shebang');
   assert.ok(script.includes('_hook'), 'must invoke _hook command');
-  assert.ok(script.includes('git config --local user.email'), 'must check local email');
+  assert.ok(script.includes('gitwho.profile'), 'must check gitwho.profile');
   assert.ok(script.includes('REPO_HOOK'), 'must chain to repo hook');
   assert.ok(script.includes('$CI'), 'must check $CI env var for CI detection');
   assert.ok(script.includes('/dev/tty'), 'must reconnect stdin via /dev/tty on Unix');

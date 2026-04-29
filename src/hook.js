@@ -10,7 +10,7 @@ const { getLocalConfig } = require('./git');
 // The user runs `git-who use <alias>` in their terminal and retries.
 function runHook(profilesFile = DEFAULT_PROFILES_FILE) {
   console.error('');
-  console.error(chalk.yellow('⚠  No git identity set for this repo.'));
+  console.error(chalk.yellow('⚠  No git-who profile set for this repo.'));
   console.error('');
 
   const list = getProfiles(profilesFile);

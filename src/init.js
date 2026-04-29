@@ -24,10 +24,9 @@ function generateHookScript() {
   return `#!/usr/bin/env sh
 # git-who pre-commit hook — regenerate with: git-who init
 
-LOCAL_EMAIL=$(git config --local user.email 2>/dev/null)
-LOCAL_NAME=$(git config --local user.name 2>/dev/null)
+PROFILE=$(git config --local gitwho.profile 2>/dev/null)
 
-if [ -n "$LOCAL_EMAIL" ] && [ -n "$LOCAL_NAME" ]; then
+if [ -n "$PROFILE" ]; then
   REPO_HOOK="$(git rev-parse --git-dir)/hooks/pre-commit"
   [ -x "$REPO_HOOK" ] && exec "$REPO_HOOK"
   exit 0
