@@ -49,3 +49,31 @@ test('setGlobalConfig sets valid config key', () => {
   assert.equal(result, 'testvalue');
   execSync(`git config --global --unset ${testKey}`, { stdio: 'ignore' });
 });
+
+test('unsetLocalConfig removes a key', (t) => {
+  const dir = makeTmpRepo();
+  after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  git.setLocalConfig('user.email', 'test@x.com', dir);
+  git.unsetLocalConfig('user.email', dir);
+  assert.equal(git.getLocalConfig('user.email', dir), '');
+});
+
+test('unsetLocalConfig is silent when key does not exist', (t) => {
+  const dir = makeTmpRepo();
+  after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  assert.doesNotThrow(() => git.unsetLocalConfig('user.email', dir));
+});
+
+test('unsetLocalConfigSection removes entire section', (t) => {
+  const dir = makeTmpRepo();
+  after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  git.setLocalConfig('gitwho.profile', 'work', dir);
+  git.unsetLocalConfigSection('gitwho', dir);
+  assert.equal(git.getLocalConfig('gitwho.profile', dir), '');
+});
+
+test('unsetLocalConfigSection is silent when section does not exist', (t) => {
+  const dir = makeTmpRepo();
+  after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  assert.doesNotThrow(() => git.unsetLocalConfigSection('gitwho', dir));
+});

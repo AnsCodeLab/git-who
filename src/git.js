@@ -34,4 +34,24 @@ function isLocalConfigSet(key, cwd = process.cwd()) {
   return getLocalConfig(key, cwd) !== '';
 }
 
-module.exports = { getLocalConfig, setLocalConfig, setGlobalConfig, isLocalConfigSet };
+function unsetLocalConfig(key, cwd = process.cwd()) {
+  const result = spawnSync('git', ['config', '--local', '--unset', key], {
+    cwd,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe']
+  });
+  if (result.error) throw new Error(`git not found: ${result.error.message}`);
+  // exit 5 means key did not exist — treat as success
+}
+
+function unsetLocalConfigSection(section, cwd = process.cwd()) {
+  const result = spawnSync('git', ['config', '--local', '--remove-section', section], {
+    cwd,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe']
+  });
+  if (result.error) throw new Error(`git not found: ${result.error.message}`);
+  // exit 5 means section did not exist — treat as success
+}
+
+module.exports = { getLocalConfig, setLocalConfig, setGlobalConfig, isLocalConfigSet, unsetLocalConfig, unsetLocalConfigSection };
