@@ -12,15 +12,15 @@ function runHook(profilesFile = DEFAULT_PROFILES_FILE) {
     console.error('');
     console.error('  No profiles saved yet. Run:');
     console.error('');
-    console.error(chalk.cyan('    git-who add') + chalk.gray('    save a new profile'));
-    console.error(chalk.cyan('    git-who use') + chalk.gray('    set profile (your commit will replay automatically)'));
+    console.error(chalk.cyan('    gitwho add') + chalk.gray('    save a new profile'));
+    console.error(chalk.cyan('    gitwho use') + chalk.gray('    set profile (your commit will replay automatically)'));
   } else {
     console.error(chalk.gray('   Your commit has been saved — run:'));
     console.error('');
     list.forEach(p => {
-      console.error(chalk.cyan(`    git-who use ${p.alias}`) + chalk.gray(`   # ${p.name} <${p.email}>`));
+      console.error(chalk.cyan(`    gitwho use ${p.alias}`) + chalk.gray(`   # ${p.name} <${p.email}>`));
     });
-    console.error(chalk.cyan('    git-who use') + chalk.gray('              # interactive picker'));
+    console.error(chalk.cyan('    gitwho use') + chalk.gray('              # interactive picker'));
   }
 
   console.error('');

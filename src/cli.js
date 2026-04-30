@@ -18,7 +18,7 @@ function checkInit() {
   const hooksPath = result.status === 0 ? result.stdout.trim() : '';
   const hookFile = hooksPath ? nodePath.join(hooksPath, 'prepare-commit-msg') : '';
   if (!hookFile || !nodeFs.existsSync(hookFile)) {
-    console.log(chalk.yellow('⚠  Hook not installed. Run: git-who init'));
+    console.log(chalk.yellow('⚠  Hook not installed. Run: gitwho init'));
   }
 }
 
@@ -82,7 +82,7 @@ async function run(argv) {
 
       const list = getProfiles();
       if (list.length === 0) {
-        console.log('No saved profiles. Run: git-who add');
+        console.log('No saved profiles. Run: gitwho add');
       } else {
         console.log(chalk.bold('Saved profiles:'));
         list.forEach(p => {
@@ -95,7 +95,7 @@ async function run(argv) {
 
       if (!activeAlias) {
         console.log('');
-        console.log(chalk.gray('No profile set for this repo. Run: git-who use'));
+        console.log(chalk.gray('No profile set for this repo. Run: gitwho use'));
       }
       break;
     }
@@ -107,7 +107,7 @@ async function run(argv) {
       if (alias) {
         console.log(chalk.green(`[${alias}]`) + `  ${name} <${email}>`);
       } else {
-        console.log(chalk.gray('No profile set for this repo. Run: git-who use'));
+        console.log(chalk.gray('No profile set for this repo. Run: gitwho use'));
       }
       break;
     }
@@ -120,7 +120,7 @@ async function run(argv) {
         // Interactive picker
         const list = getProfiles();
         if (list.length === 0) {
-          console.log('No profiles saved. Run: git-who add');
+          console.log('No profiles saved. Run: gitwho add');
           process.exit(1);
         }
         const choices = list.map(p => ({
@@ -157,7 +157,7 @@ async function run(argv) {
         // Direct alias
         const profile = findProfile(alias);
         if (!profile) {
-          console.error(chalk.red(`✖  Profile '${alias}' not found. Run: git-who list`));
+          console.error(chalk.red(`✖  Profile '${alias}' not found. Run: gitwho list`));
           process.exit(1);
         }
         await afterUse(alias, profile.name, profile.email);
@@ -182,12 +182,12 @@ async function run(argv) {
     case 'update': {
       const alias = args[0];
       if (!alias) {
-        console.error('Usage: git-who update <alias>');
+        console.error('Usage: gitwho update <alias>');
         process.exit(1);
       }
       const existing = findProfile(alias);
       if (!existing) {
-        console.error(chalk.red(`✖  Profile '${alias}' not found. Run: git-who list`));
+        console.error(chalk.red(`✖  Profile '${alias}' not found. Run: gitwho list`));
         process.exit(1);
       }
       const res = await prompts([
@@ -206,7 +206,7 @@ async function run(argv) {
     case 'remove': {
       const alias = args[0];
       if (!alias) {
-        console.error('Usage: git-who remove <alias>');
+        console.error('Usage: gitwho remove <alias>');
         process.exit(1);
       }
       try {
@@ -226,11 +226,11 @@ async function run(argv) {
 
     default: {
       console.log([
-        'git-who — commit as the right person, every time.',
+        'gitwho — commit as the right person, every time.',
         '',
         chalk.bold('Getting started:'),
-        '  1. git-who init        install the global hook (run once)',
-        '  2. git-who add         save a profile (name + email)',
+        '  1. gitwho init        install the global hook (run once)',
+        '  2. gitwho add         save a profile (name + email)',
         '  3. git commit ...      hook guides you from there',
         '',
         chalk.bold('Commands:'),

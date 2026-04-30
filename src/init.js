@@ -22,7 +22,7 @@ function generateHookScript() {
   const nodePath = toUnixPath(process.execPath);
   const binPath = toUnixPath(path.resolve(__dirname, '..', 'bin.js'));
   return `#!/usr/bin/env sh
-# git-who prepare-commit-msg hook — regenerate with: git-who init
+# gitwho prepare-commit-msg hook — regenerate with: gitwho init
 # $1 = path to COMMIT_EDITMSG, $2 = commit source (message/template/merge/squash/commit)
 
 PROFILE=$(git config --local gitwho.profile 2>/dev/null)
@@ -42,7 +42,7 @@ fi
 [ "$2" = "squash" ] && exit 0
 [ "$2" = "fixup"  ] && exit 0
 
-# Save the commit message for auto-replay after git-who use
+# Save the commit message for auto-replay after gitwho use
 GIT_DIR="$(git rev-parse --git-dir)"
 cp "$1" "$GIT_DIR/git-who-pending-message" 2>/dev/null
 

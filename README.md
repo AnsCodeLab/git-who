@@ -1,22 +1,22 @@
-# git-who
+# gitwho
 
 Commit as the right person, every time. Never accidentally commit as the wrong author when juggling multiple clients or organizations.
 
 ## Install
 
 ```bash
-npm install -g @anscodelab/git-who
+npm install -g @anscodelab/gitwho
 ```
 
 Then run once to install the global hook:
 
 ```bash
-git-who init
+gitwho init
 ```
 
 ## How it works
 
-`git-who init` installs a global `prepare-commit-msg` hook via `git config --global core.hooksPath`. The hook fires on every commit in every repo.
+`gitwho init` installs a global `prepare-commit-msg` hook via `git config --global core.hooksPath`. The hook fires on every commit in every repo.
 
 **First commit in a new repo** — the hook blocks and shows which command to run:
 
@@ -24,14 +24,14 @@ git-who init
 ⚠  No profile set for this repo.
    Your commit has been saved — run:
 
-    git-who use personal   # An Nguyen <you@personal.com>
-    git-who use            # interactive picker
+    gitwho use personal   # An Nguyen <you@personal.com>
+    gitwho use            # interactive picker
 ```
 
-**Run `git-who use`** — picks a profile and automatically replays your saved commit:
+**Run `gitwho use`** — picks a profile and automatically replays your saved commit:
 
 ```
-$ git-who use
+$ gitwho use
 
   ❯ personal   An Nguyen <you@personal.com>
     client-a   An Nguyen <you@clienta.com>
@@ -49,11 +49,11 @@ The hook also chains to any existing `prepare-commit-msg` hook in the repo (husk
 ## Commands
 
 ```
-git-who <command>
+gitwho <command>
 
 Getting started:
-  1. git-who init        install the global hook (run once)
-  2. git-who add         save a profile (name + email)
+  1. gitwho init        install the global hook (run once)
+  2. gitwho add         save a profile (name + email)
   3. git commit ...      hook guides you from there
 
 Commands:
@@ -67,20 +67,20 @@ Commands:
   unset             Clear this repo's identity
 ```
 
-### `git-who init`
+### `gitwho init`
 Installs the global hook. Run once after installing.
 
-### `git-who add`
+### `gitwho add`
 Interactive — prompts for alias, name, email:
 ```
-$ git-who add
+$ gitwho add
 Alias:  personal
 Name:   An Nguyen
 Email:  you@personal.com
 ✓ Profile 'personal' saved.
 ```
 
-### `git-who list`
+### `gitwho list`
 Shows saved profiles and this repo's active identity:
 ```
 This repo:  [personal]  An Nguyen <you@personal.com>
@@ -90,22 +90,22 @@ Saved profiles:
     client-a        An Nguyen <you@clienta.com>
 ```
 
-### `git-who use [alias]`
+### `gitwho use [alias]`
 With an alias: sets identity immediately and replays any saved commit.
 Without an alias: shows an interactive picker.
 
-### `git-who whoami`
+### `gitwho whoami`
 Quick status for the current repo:
 ```
 [personal]  An Nguyen <you@personal.com>
 ```
 
-### `git-who unset`
-Clears this repo's identity. Next commit will be blocked again until you run `git-who use`.
+### `gitwho unset`
+Clears this repo's identity. Next commit will be blocked again until you run `gitwho use`.
 
 ## Profiles
 
-Saved in `~/.git-who/profiles.json`:
+Saved in `~/.gitwho/profiles.json`:
 ```json
 {
   "profiles": [
