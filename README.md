@@ -105,7 +105,7 @@ Clears this repo's identity. Next commit will be blocked again until you run `gi
 
 ## Profiles
 
-Saved in `~/.gitwho/profiles.json`:
+Saved in `~/.git-who/profiles.json`:
 ```json
 {
   "profiles": [
