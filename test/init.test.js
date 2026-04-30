@@ -16,6 +16,8 @@ test('generateHookScript returns a sh script invoking _hook', () => {
   assert.ok(script.includes('REPO_HOOK'), 'must chain to repo hook');
   assert.ok(script.includes('$CI'), 'must check $CI env var for CI detection');
   assert.ok(script.includes('git-who-pending-message'), 'must save pending message');
+  assert.ok(!script.includes('\ncp '), 'must not use cp (not available on all platforms)');
+  assert.ok(script.includes('copyFileSync'), 'must use node fs.copyFileSync for cross-platform copy');
   assert.ok(script.includes('prepare-commit-msg'), 'hook comment must name prepare-commit-msg');
 });
 

@@ -1,6 +1,6 @@
 {
   "name": "@anscodelab/gitwho",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Prompts for the right git identity before your first commit in a repo",
   "bin": {
     "gitwho": "bin.js"

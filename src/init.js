@@ -44,7 +44,7 @@ fi
 
 # Save the commit message for auto-replay after gitwho use
 GIT_DIR="$(git rev-parse --git-dir)"
-cp "$1" "$GIT_DIR/git-who-pending-message" 2>/dev/null
+"${nodePath}" -e "try{require('fs').copyFileSync(process.argv[1],process.argv[2])}catch{}" "$1" "$GIT_DIR/git-who-pending-message"
 
 "${nodePath}" "${binPath}" _hook
 # Always block — node printed the instructions above
