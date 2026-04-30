@@ -5,7 +5,7 @@ Commit as the right person, every time. Never accidentally commit as the wrong a
 ## Install
 
 ```bash
-npm install -g @anscodelab/gitwho
+npm install -g @anscodelab/gitwho@latest
 ```
 
 Then run once to install the global hook:
