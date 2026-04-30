@@ -1,6 +1,6 @@
 {
-  "name": "@annguyen209/git-who",
-  "version": "0.2.1",
+  "name": "@anscodelab/git-who",
+  "version": "0.1.0",
   "description": "Prompts for the right git identity before your first commit in a repo",
   "bin": {
     "git-who": "bin.js"
@@ -19,7 +19,7 @@
     "commit",
     "author"
   ],
-  "author": "An Nguyen <annguyen209@gmail.com>",
+  "author": "AnsCodeLab",
   "license": "MIT",
   "repository": {
     "type": "git",
